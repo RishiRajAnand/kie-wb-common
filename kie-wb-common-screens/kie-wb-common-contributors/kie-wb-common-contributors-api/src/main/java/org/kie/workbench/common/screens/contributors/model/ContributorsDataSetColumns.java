@@ -21,6 +21,7 @@ package org.kie.workbench.common.screens.contributors.model;
 public interface ContributorsDataSetColumns {
 
     String COLUMN_ORG = "organization";
+    String COLUMN_BRANCH = "branch";
     String COLUMN_REPO = "repository";
     String COLUMN_PROJECT = "project";
     String COLUMN_AUTHOR = "author";

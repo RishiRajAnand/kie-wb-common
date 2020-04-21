@@ -45,6 +45,7 @@ import org.guvnor.structure.organizationalunit.OrganizationalUnitService;
 import org.guvnor.structure.organizationalunit.RemoveOrganizationalUnitEvent;
 import org.guvnor.structure.organizationalunit.RepoAddedToOrganizationalUnitEvent;
 import org.guvnor.structure.organizationalunit.RepoRemovedFromOrganizationalUnitEvent;
+import org.guvnor.structure.repositories.Branch;
 import org.uberfire.backend.server.util.Paths;
 import org.uberfire.commons.services.cdi.Startup;
 import org.uberfire.ext.editor.commons.backend.version.VersionRecordService;
@@ -59,6 +60,7 @@ import org.uberfire.workbench.events.ResourceUpdatedEvent;
 
 import static org.kie.soup.commons.validation.PortablePreconditions.checkNotNull;
 import static org.kie.workbench.common.screens.contributors.model.ContributorsDataSetColumns.COLUMN_AUTHOR;
+import static org.kie.workbench.common.screens.contributors.model.ContributorsDataSetColumns.COLUMN_BRANCH;
 import static org.kie.workbench.common.screens.contributors.model.ContributorsDataSetColumns.COLUMN_DATE;
 import static org.kie.workbench.common.screens.contributors.model.ContributorsDataSetColumns.COLUMN_MSG;
 import static org.kie.workbench.common.screens.contributors.model.ContributorsDataSetColumns.COLUMN_ORG;
@@ -102,6 +104,7 @@ public class ContributorsManager implements DataSetGenerator {
             .name("GIT Contributors")
             .generatorClass(ContributorsManager.class.getName())
             .label(COLUMN_ORG)
+            .label(COLUMN_BRANCH)
             .label(COLUMN_REPO)
             .label(COLUMN_PROJECT)
             .label(COLUMN_AUTHOR)
@@ -139,6 +142,7 @@ public class ContributorsManager implements DataSetGenerator {
 
             if (projects.isEmpty()) {
                 dsBuilder.row(org,//org
+                              null,
                               null,//repo
                               null,//project
                               null,//author
@@ -152,30 +156,36 @@ public class ContributorsManager implements DataSetGenerator {
                     final String projectName = project.getName();
                     org.uberfire.backend.vfs.Path rootPath = project.getRootPath();
                     final Path projectRoot = Paths.convert(rootPath);
-                    final List<VersionRecord> recordList = recordService.loadVersionRecords(projectRoot);
+                    Collection <Branch> branches = project.getRepository().getBranches();
+                    branches.stream()
+                            .forEach(b -> {
+                                final List<VersionRecord> c =  recordService.loadVersionRecords(Paths.convert(b.getPath()));
 
-                    if (recordList.isEmpty()) {
-                        dsBuilder.row(org, //org
-                                      repoAlias,//repo
-                                      null,//project
-                                      null,//author
-                                      "Empty project", //mesage
-                                      null);//date
-                    } else {
-                        for (VersionRecord record : recordList) {
-                            String alias = record.author();
-                            String author = authorMappings.getProperty(alias);
-                            author = author == null ? alias : author;
-                            String msg = record.comment();
-                            Date date = record.date();
-                            dsBuilder.row(org,
-                                          repoAlias,
-                                          projectName,
-                                          author,
-                                          msg,
-                                          date);
-                        }
-                    }
+                                if (c.isEmpty()) {
+                                    dsBuilder.row(org, //org
+                                                  b.getName(),
+                                                  repoAlias,//repo
+                                                  null,//project
+                                                  null,//author
+                                                  "Empty project", //mesage
+                                                  null);//date
+                                } else {
+                                    for (VersionRecord record : c) {
+                                        String alias = record.author();
+                                        String author = authorMappings.getProperty(alias);
+                                        author = author == null ? alias : author;
+                                        String msg = record.comment();
+                                        Date date = record.date();
+                                        dsBuilder.row(org,
+                                                      b.getName(),
+                                                      repoAlias,
+                                                      projectName,
+                                                      author,
+                                                      msg,
+                                                      date);
+                                    }
+                                }
+                            });
                 }
             }
         }

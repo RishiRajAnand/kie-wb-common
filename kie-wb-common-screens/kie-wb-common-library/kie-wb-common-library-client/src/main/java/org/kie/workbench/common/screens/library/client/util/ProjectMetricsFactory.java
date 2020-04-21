@@ -26,6 +26,7 @@ import org.dashbuilder.displayer.DisplayerSubType;
 import org.dashbuilder.displayer.client.Displayer;
 import org.dashbuilder.displayer.client.DisplayerLocator;
 import org.guvnor.common.services.project.model.WorkspaceProject;
+import org.guvnor.structure.repositories.Branch;
 import org.jboss.errai.ui.client.local.spi.TranslationService;
 import org.kie.workbench.common.screens.library.client.resources.i18n.LibraryConstants;
 
@@ -42,6 +43,7 @@ import static org.dashbuilder.dataset.sort.SortOrder.ASCENDING;
 import static org.dashbuilder.dataset.sort.SortOrder.DESCENDING;
 import static org.dashbuilder.displayer.Position.RIGHT;
 import static org.kie.workbench.common.screens.contributors.model.ContributorsDataSetColumns.COLUMN_AUTHOR;
+import static org.kie.workbench.common.screens.contributors.model.ContributorsDataSetColumns.COLUMN_BRANCH;
 import static org.kie.workbench.common.screens.contributors.model.ContributorsDataSetColumns.COLUMN_DATE;
 import static org.kie.workbench.common.screens.contributors.model.ContributorsDataSetColumns.COLUMN_MSG;
 import static org.kie.workbench.common.screens.contributors.model.ContributorsDataSetColumns.COLUMN_ORG;
@@ -116,6 +118,7 @@ public class ProjectMetricsFactory {
     protected ColumnFilter createProjectFilter(WorkspaceProject project) {
         String repoAlias = project.getRepository().getAlias();
         String projectName = project.getName();
+        Branch currentBranch = project.getBranch();
         String space = project.getOrganizationalUnit().getName();
         return AND(equalsTo(COLUMN_REPO,
                             repoAlias),
